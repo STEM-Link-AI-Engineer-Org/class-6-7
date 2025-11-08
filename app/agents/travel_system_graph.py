@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import Optional, cast
 
 from langchain.messages import HumanMessage, AIMessage
 from langgraph.graph import StateGraph, MessagesState, START, END
@@ -83,12 +83,11 @@ def requirements_subgraph_node(
     requirements = subgraph_result.get("requirements")
 
     # The result contains 'requirements' field populated when complete
-    return {
+    return cast(TravelSystemState, {
         "messages": [AIMessage(content=json.dumps(requirements), name="requirements")],
         "requirements": requirements,
-        "itinerary": None,
-        "bookings": None,
-    }
+    })
+    )
 
 def planner_agent_node(state: TravelSystemState) -> TravelSystemState:
     """
@@ -109,12 +108,10 @@ def planner_agent_node(state: TravelSystemState) -> TravelSystemState:
 
     itinerary = response["structured_response"].itinerary.model_dump()
 
-    return {
+    return cast(TravelSystemState, {
         "messages": [AIMessage(content=json.dumps(itinerary), name="planner")],
-        "requirements": requirements,
         "itinerary": itinerary,
-        "bookings": None,
-    }
+    })
 
 
 def booker_agent_node(state: TravelSystemState) -> TravelSystemState:
@@ -146,12 +143,10 @@ Return booking confirmations for both flight and hotel."""
     # Extract structured bookings from response
     bookings = response["structured_response"].bookings.model_dump()
 
-    return {
+    return cast(TravelSystemState, {
         "messages": [AIMessage(content=json.dumps(bookings), name="booker")],
-        "requirements": requirements,
-        "itinerary": itinerary,
         "bookings": bookings,
-    }
+    })
 
 
 # Build the graph
